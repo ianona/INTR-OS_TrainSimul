@@ -12,11 +12,35 @@ import java.util.ArrayList;
  * @author dlsza
  */
 public class Station {
-    ArrayList<Passenger> passengers;
-    int stationNumber;
+    private ArrayList<Passenger> passengers;
+    private Train currentTrain;
+    private int stationNumber;
     
     Station(int num){
         this.stationNumber = num;
         this.passengers = new ArrayList<>();
+        this.currentTrain = null;
+    }
+    
+    /*Passenger arrives at the station*/
+    public void addPassenger(Station destinationStation){
+        this.passengers.add(new Passenger(this, destinationStation));
+    }
+    
+    /*Load the train full of passengers*/
+    public void loadTrain(){
+        for(Passenger p: passengers){
+            /*Put a break here for when the train is full*/
+            this.currentTrain.boardPassenger(p);
+            this.passengers.remove(p);
+        }
+    }
+    
+    public void trainArrives(Train t){
+        this.currentTrain = t;
+    }
+    
+    public void trainDeparts(){
+        this.currentTrain = null;
     }
 }

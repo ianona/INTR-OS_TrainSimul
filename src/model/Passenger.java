@@ -10,11 +10,17 @@ package model;
  * @author dlsza
  */
 public class Passenger {
-    Station originStation;
-    Station destinationStation;
+    private Station originStation;
+    private Station destinationStation;
     
     Passenger(Station start, Station end){
         this.originStation = start;
         this.destinationStation = end;
     }
+
+    public Station getDestinationStation() {
+        return destinationStation;
+    }
+    
+    /*Should we add a board function here? Or should we keep it as the load passengers in station*/
 }
