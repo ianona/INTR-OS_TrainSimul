@@ -6,6 +6,8 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  *
@@ -15,6 +17,10 @@ public class Station {
     private ArrayList<Passenger> passengers;
     private Train currentTrain;
     private int stationNumber;
+    
+    private final Lock passengerLock = new ReentrantLock();
+    private final Lock stationLock = new ReentrantLock();
+    private final Lock trainLock = new ReentrantLock();
     
     Station(int num){
         this.stationNumber = num;
@@ -29,12 +35,23 @@ public class Station {
     
     /*Load the train full of passengers*/
     public void loadTrain(){
-        for(Passenger p: passengers){
-            /*Put a break here for when the train is full*/
-            this.currentTrain.boardPassenger(p);
-            this.passengers.remove(p);
+        stationLock.lock();
+        try{
+            for(Passenger p: passengers){
+                /*Put a break here for when the train is full*/
+                if(this.currentTrain.isFull())
+                    break;
+                this.currentTrain.boardPassenger(p);
+                this.passengers.remove(p);
+            }
+        }catch(Exception e)
+        {
+         e.printStackTrace();
+        } finally{
+          stationLock.unlock();
         }
-    }
+     }
+    
     
     public void trainArrives(Train t){
         this.currentTrain = t;
