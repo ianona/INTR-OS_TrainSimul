@@ -85,6 +85,6 @@ public class Train {
         trainReady.unlock();
         }
         //Sets the destination for the next station
-        this.nextStation++;
+        this.nextStation = (this.nextStation+1)%8;
     }
 }
