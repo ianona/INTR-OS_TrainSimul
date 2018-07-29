@@ -35,8 +35,8 @@ public class Station {
     
     /*Load the train full of passengers*/
     public void loadTrain(){
-        stationLock.lock();
-        try{
+//        stationLock.lock();
+//        try{
             for(Passenger p: passengers){
                 /*Put a break here for when the train is full*/
                 if(this.currentTrain.isFull())
@@ -44,12 +44,12 @@ public class Station {
                 this.currentTrain.boardPassenger(p);
                 this.passengers.remove(p);
             }
-        }catch(Exception e)
-        {
-         e.printStackTrace();
-        } finally{
-          stationLock.unlock();
-        }
+//        }catch(Exception e)
+//        {
+//         e.printStackTrace();
+//        } finally{
+//          stationLock.unlock();
+//        }
      }
     
     
@@ -59,5 +59,39 @@ public class Station {
     
     public void trainDeparts(){
         this.currentTrain = null;
+    }
+    
+    public Lock getLock(){
+        return stationLock;
+    }
+    
+    public void run(){
+        while(true){
+            if(currentTrain == null){
+                ;//do nothing
+            } else {
+                //Signal that you are using the train
+                currentTrain.getLock().lock();
+                try{
+                    //When a train arrives at the station, drop off passengers
+                    this.currentTrain.dropOffPassengers();
+
+                    //Afterwards, load the train
+                    loadTrain();
+
+                    //When it's done loading, signal it is done using the train
+                    currentTrain.getLock().unlock();
+                    
+                    //Set currentTrain to null
+                    this.trainDeparts();
+
+                }catch(Exception e){
+                    e.printStackTrace();
+                } finally{
+                    //Station is free to be boarded
+                    stationLock.unlock();
+                }
+            }
+        }
     }
 }
