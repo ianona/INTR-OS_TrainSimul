@@ -6,6 +6,7 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -18,9 +19,8 @@ public class Station {
     private Train currentTrain;
     private int stationNumber;
     
-    private final Lock passengerLock = new ReentrantLock();
     private final Lock stationLock = new ReentrantLock();
-    private final Lock trainLock = new ReentrantLock();
+    private final Condition cond = stationLock.newCondition();
     
     Station(int num){
         this.stationNumber = num;
@@ -65,13 +65,22 @@ public class Station {
         return stationLock;
     }
     
-    public void run(){
+    public Condition getCond(){
+        return cond;
+    }
+    
+    public void run() throws InterruptedException{
         while(true){
+            
             if(currentTrain == null){
                 ;//do nothing
             } else {
+                stationLock.lock();
                 //Signal that you are using the train
-                currentTrain.getLock().lock();
+                currentTrain.getCond1().signal();
+                
+                cond.await();
+                
                 try{
                     //When a train arrives at the station, drop off passengers
                     this.currentTrain.dropOffPassengers();
@@ -80,11 +89,11 @@ public class Station {
                     loadTrain();
 
                     //When it's done loading, signal it is done using the train
-                    currentTrain.getLock().unlock();
+//                    currentTrain.getLock().unlock();
                     
                     //Set currentTrain to null
                     this.trainDeparts();
-
+                    currentTrain.getCond2().signal();
                 }catch(Exception e){
                     e.printStackTrace();
                 } finally{

@@ -6,6 +6,7 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -20,7 +21,9 @@ public class Train {
     private ArrayList<Station> allStations;
     private int nextStation;
     private final Lock trainReady = new ReentrantLock();
-
+    private final Condition cond1 = trainReady.newCondition();
+    private final Condition cond2 = trainReady.newCondition();
+    
     public Train(int capacity, ArrayList<Station> stations) {
         this.freeSeats = capacity;
         this.currentStation = null;
@@ -64,27 +67,32 @@ public class Train {
         this.currentStation = null;
     }
     
-    public Lock getLock(){
-        return trainReady;
+    public Condition getCond1(){
+        return cond1;
     }
     
-    public void run(){
+    public Condition getCond2(){
+        return cond2;
+    }
+    
+    public void run() throws InterruptedException{
         //Train is not ready to be boarded (in transit)
         trainReady.lock();
-        
+        cond1.await();
         try{
             //Waits for next station to be ready to receive it
-            allStations.get(nextStation).getLock().lock();
-
+            allStations.get(nextStation).getCond().signal();
+            cond2.await();
             //Arrives to the next station
             this.arriveAt(allStations.get(nextStation));
         } catch(Exception e) {
             
         } finally {
+        //Sets the destination for the next station
+        this.nextStation = (this.nextStation+1)%8;    
+        
         //Signals that the train is ready to be boarded
         trainReady.unlock();
         }
-        //Sets the destination for the next station
-        this.nextStation = (this.nextStation+1)%8;
     }
 }
