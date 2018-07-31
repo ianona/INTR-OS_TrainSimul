@@ -71,10 +71,7 @@ public class Train {
         return cond1;
     }
     
-    public Condition getCond2(){
-        return cond2;
-    }
-    
+
     public void run() throws InterruptedException{
         //Train is not ready to be boarded (in transit)
         trainReady.lock();
@@ -82,12 +79,13 @@ public class Train {
         try{
             //Waits for next station to be ready to receive it
             allStations.get(nextStation).getCond().signal();
-            cond2.await();
-            //Arrives to the next station
-            this.arriveAt(allStations.get(nextStation));
+            
         } catch(Exception e) {
             
         } finally {
+        //Arrives to the next station
+        this.arriveAt(allStations.get(nextStation));
+            
         //Sets the destination for the next station
         this.nextStation = (this.nextStation+1)%8;    
         
