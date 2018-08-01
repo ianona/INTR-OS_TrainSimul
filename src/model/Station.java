@@ -28,7 +28,7 @@ public class Station {
         this.currentTrain = null;
     }
     
-    /*Passenger arrives at the station*/
+    /* Passenger arrives at the station */
     public void addPassenger(Station destinationStation){
         this.passengers.add(new Passenger(this, destinationStation));
     }

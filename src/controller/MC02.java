@@ -17,11 +17,9 @@ public class MC02 {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        SimulationView sv = new SimulationView();
-        Feed f = new Feed();
-        f.update("CalTrain II Simulation INTR-OS S18");
-        f.update("by Marasigan, Ona, Santiago");
-        f.update("");
+        //SimulationView sv = new SimulationView();
+        //Feed f = new Feed();
+        SimulationController sc = new SimulationController();
+        sc.initialize();
     }
-    
 }

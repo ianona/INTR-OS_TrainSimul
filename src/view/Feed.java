@@ -39,11 +39,20 @@ public class Feed extends JFrame{
         this.add(clear);
         this.add(feedscroll);
         
+        clear();
+        
         this.setVisible(true);
         this.revalidate();
     }
     
     public void update(String s){
         feed.append(s+"\n");
+    }
+    
+    public void clear(){
+        feed.setText("");
+        feed.append("CalTrain II Simulation INTR-OS S18\n");
+        feed.append("by Marasigan, Ona, Santiago\n");
+        feed.append("\n");
     }
 }
