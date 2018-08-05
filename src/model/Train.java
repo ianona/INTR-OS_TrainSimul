@@ -52,26 +52,29 @@ public class Train implements Runnable{
     public void moveStation(){
         // moves and sets current station to next station
         curStation = (curStation + 1) % 8;
-        System.out.println("train moving station to " + (curStation+1));
-        station = allStations[curStation];
-        
-        // checks if new station is dropoff for passengers
-        // if so, removes passenger from array
-        for (int i = passengers.size() - 1; i >= 0; i--) {
-            // p.moveCurStation(station);
-            if (passengers.get(i).getDestinationStation().getStationNumber() == station.getStationNumber()) {
-                System.out.println("I have arrived at my destination and leaving train...[" + 
-                        passengers.get(i).getOriginStation().getStationNumber() + " -> " + 
-                        passengers.get(i).getDestinationStation().getStationNumber() + "]");
-                passengers.remove(i);
-            }
-                
+        while (allStations[curStation].getTrain() != null){
+            System.out.println("Train #" + trainNum + " is waiting");
         }
+        System.out.println("Train #"+ trainNum + " moving station to " + (curStation+1));
+        station = allStations[curStation];
         
         // locks and sets parent station's current train to this
         // signals parent station that trainInStation so it can load it
         station.getStationLock().lock();
         try {
+            // checks if new station is dropoff for passengers
+            // if so, removes passenger from array
+            for (int i = passengers.size() - 1; i >= 0; i--) {
+                // p.moveCurStation(station);
+                if (passengers.get(i).getDestinationStation().getStationNumber() == station.getStationNumber()) {
+                    System.out.println("I have arrived at my destination and leaving train...[" + 
+                            passengers.get(i).getOriginStation().getStationNumber() + " -> " + 
+                            passengers.get(i).getDestinationStation().getStationNumber() + "]");
+                    passengers.remove(i);
+                }
+
+            }
+        
             station.setTrain(this);
             station.getTrainInStation().signal();
         } finally {

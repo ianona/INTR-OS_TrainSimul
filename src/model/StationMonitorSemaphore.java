@@ -12,9 +12,9 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  *
- * @author ianona
+ * @author kyles
  */
-public class StationMonitor implements Runnable{
+public class StationMonitorSemaphore implements Runnable{
     private int stationNumber;
     private Lock stationLock;
     private Condition trainArrived;
@@ -24,7 +24,7 @@ public class StationMonitor implements Runnable{
     private Train train;
     private ArrayList<Passenger> waitingPassengers;
     
-    public StationMonitor(int num){
+    public StationMonitorSemaphore(int num){
         this.stationNumber = num;
         this.stationLock = new ReentrantLock();
         this.trainArrived = stationLock.newCondition();
