@@ -82,8 +82,8 @@ public class Train implements Runnable{
             station.setTrain(this);
             station.getTrainInStation().signal();
         } finally {
-            //station.getStationLock().release();
             station.getDoneUsingTrain().await();
+            station.getStationLock().unlock();
         }
     }
 

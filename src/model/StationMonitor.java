@@ -41,8 +41,9 @@ public class StationMonitor implements Runnable{
         // loads train by signalling all waiting passengers that trainArrived
         // waits for an allSeated signal to know when to release train to next station
         // once signal is received, moves train to next station and sets current train to null
+        stationLock.lock();
         try{
-            //stationLock.acquire();
+            
             if (getWaitingPassengers() > 0 && getFreeTrainSeats() > 0) {
                 System.out.println("STATION "+stationNumber +" FILLING TRAIN " + train.getTrainNumber());
                 trainArrived.signalAll();
@@ -60,7 +61,7 @@ public class StationMonitor implements Runnable{
             System.out.println("STATION" + stationNumber +"freed it's train");
             this.waitForFree.signal();
         } finally {
-            //stationLock.release();
+            stationLock.unlock();
         }
     }
     
@@ -140,7 +141,7 @@ public class StationMonitor implements Runnable{
                 
                 // locks and waits for train to arrive in station
                 // after receiving trainInStation signal, proceeds to load train
-                //stationLock.acquire();
+                stationLock.lock();
                 trainInStation.await();
                 System.out.println("train "+ train.getTrainNumber() + " arrived at station" + this.getStationNumber());
                 station_load_train();
