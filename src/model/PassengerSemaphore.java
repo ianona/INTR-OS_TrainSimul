@@ -6,24 +6,22 @@
 package model;
 
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  *
- * @author dlsza
+ * @author kyles
  */
-public class Passenger implements Runnable {
-    private StationMonitor originStation;
-    private StationMonitor currentStation;
-    private StationMonitor destinationStation;
-    private Lock stationLock;
-    private Condition trainArrived;
-    private Condition allSeated;
+public class PassengerSemaphore implements Runnable{
+    private StationMonitorSemaphore originStation;
+    private StationMonitorSemaphore currentStation;
+    private StationMonitorSemaphore destinationStation;
+    private Semaphore stationLock;
+    private Semaphore trainArrived;
+    private Semaphore allSeated;
     
-    public Passenger(StationMonitor start, StationMonitor end){
+    public PassengerSemaphore(StationMonitorSemaphore start, StationMonitorSemaphore end){
         this.originStation = start;
         this.currentStation = start;
         this.destinationStation = end;
@@ -32,53 +30,51 @@ public class Passenger implements Runnable {
         this.allSeated = start.getAllSeated();
     }
 
-    public StationMonitor getDestinationStation() {
+    public StationMonitorSemaphore getDestinationStation() {
         return destinationStation;
     }
     
-    public StationMonitor getOriginStation() {
+    public StationMonitorSemaphore getOriginStation() {
         return originStation;
     }
     
     public void station_wait_for_train() throws InterruptedException{
-        // locks and adds itself to its station's waiting array
-        stationLock.lock();
         
         // wait for trainArrived signal
         // after receiving signal, remove from waiting, unlock, proceed to board
         try {
-            
+            // locks and adds itself to its station's waiting array
+            stationLock.acquire();
             originStation.addWaiting(this);
             System.out.println("passenger at station " + originStation.getStationNumber()+" waiting for train...");
-            trainArrived.await();
+            trainArrived.acquire();
             System.out.println("passenger is signalled by train");
             originStation.removeWaiting(this);
         } catch (InterruptedException ex) {
             Logger.getLogger(Passenger.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
-            stationLock.unlock();
+            stationLock.release();
             station_on_board();
         }
     }
     
     public void station_on_board() throws InterruptedException{
         // locks and boards train
-        stationLock.lock();
         // signals allSeated if no more waiting or train is full
         // signal allSeated is sign for train to move on to next station
         try {
-            
+            stationLock.acquire();
             System.out.println("bording train...");
             originStation.boardPassenger(this);
             if (originStation.getFreeTrainSeats() == 0 || originStation.getWaitingPassengers() == 0) {
-                allSeated.signal();
+                allSeated.acquire();
             }
         } finally {
-            stationLock.unlock();
+            stationLock.release();
         }
     }
     
-    public void moveCurStation(StationMonitor s) {
+    public void moveCurStation(StationMonitorSemaphore s) {
         this.currentStation = s;
     }
 

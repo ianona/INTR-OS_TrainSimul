@@ -60,10 +60,12 @@ public class Train implements Runnable{
         System.out.println("Train #"+ trainNum + " moving station to " + (curStation+1));
         station = allStations[curStation];
         
+        // locks and sets parent station's current train to this
+        // signals parent station that trainInStation so it can load it
+        station.getStationLock().lock();
+        
         try {
-            // locks and sets parent station's current train to this
-            // signals parent station that trainInStation so it can load it
-            station.getStationLock().acquire();
+            
             // checks if new station is dropoff for passengers
             // if so, removes passenger from array
             for (int i = passengers.size() - 1; i >= 0; i--) {
@@ -78,10 +80,10 @@ public class Train implements Runnable{
             }
         
             station.setTrain(this);
-            station.getTrainInStation().release();
+            station.getTrainInStation().signal();
         } finally {
             //station.getStationLock().release();
-            station.getDoneUsingTrain().acquire();
+            station.getDoneUsingTrain().await();
         }
     }
 
