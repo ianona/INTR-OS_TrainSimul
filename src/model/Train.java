@@ -6,6 +6,8 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -49,7 +51,7 @@ public class Train implements Runnable{
         emptySeats += 1;
     }
     
-    public void moveStation(){
+    public void moveStation() throws InterruptedException{
         // moves and sets current station to next station
         curStation = (curStation + 1) % 8;
         while (allStations[curStation].getTrain() != null){
@@ -58,10 +60,10 @@ public class Train implements Runnable{
         System.out.println("Train #"+ trainNum + " moving station to " + (curStation+1));
         station = allStations[curStation];
         
-        // locks and sets parent station's current train to this
-        // signals parent station that trainInStation so it can load it
-        station.getStationLock().lock();
         try {
+            // locks and sets parent station's current train to this
+            // signals parent station that trainInStation so it can load it
+            station.getStationLock().acquire();
             // checks if new station is dropoff for passengers
             // if so, removes passenger from array
             for (int i = passengers.size() - 1; i >= 0; i--) {
@@ -76,17 +78,21 @@ public class Train implements Runnable{
             }
         
             station.setTrain(this);
-            station.getTrainInStation().signal();
+            station.getTrainInStation().release();
         } finally {
-            station.getStationLock().unlock();
+            station.getStationLock().release();
         }
     }
 
     @Override
     public void run() {
-        // initially moves station from -1 to 0
-        // implies every train spawns at first station
-        moveStation();
+        try {
+            // initially moves station from -1 to 0
+            // implies every train spawns at first station
+            moveStation();
+        } catch (InterruptedException ex) {
+            Logger.getLogger(Train.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     /*

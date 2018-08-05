@@ -6,6 +6,7 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -16,38 +17,37 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class StationMonitor implements Runnable{
     private int stationNumber;
-    private Lock stationLock;
-    private Condition trainArrived;
-    private Condition allSeated;
-    private Condition trainInStation;
-    private Condition waitForFree;
+    private Semaphore stationLock;
+    private Semaphore trainArrived;
+    private Semaphore allSeated;
+    private Semaphore trainInStation;
+    private Semaphore waitForFree;
     private Train train;
     private ArrayList<Passenger> waitingPassengers;
     
     public StationMonitor(int num){
         this.stationNumber = num;
-        this.stationLock = new ReentrantLock();
-        this.trainArrived = stationLock.newCondition();
-        this.allSeated = stationLock.newCondition();
-        this.trainInStation = stationLock.newCondition();
-        this.waitForFree = stationLock.newCondition();
+        this.stationLock = new Semaphore(1,true);
+        this.trainArrived = new Semaphore(0,true);
+        this.allSeated = new Semaphore(0,true);
+        this.trainInStation = new Semaphore(0,true);
+        this.waitForFree = new Semaphore(0,true);
         this.train = null;
         this.waitingPassengers = new ArrayList<>();
     }
     
-    public void station_load_train() {
-        stationLock.lock();
-        
+    public void station_load_train() throws InterruptedException {
         // loads train by signalling all waiting passengers that trainArrived
         // waits for an allSeated signal to know when to release train to next station
         // once signal is received, moves train to next station and sets current train to null
         try{
+            stationLock.acquire();
             if (getWaitingPassengers() > 0 && getFreeTrainSeats() > 0) {
                 System.out.println("STATION "+stationNumber +" FILLING TRAIN " + train.getTrainNumber());
-                trainArrived.signalAll();
+                trainArrived.release();
                 
                 try {
-                    allSeated.await();
+                    allSeated.acquire();
                 } catch (InterruptedException ex) {
                     System.out.println("ERROR THINGO " + ex);
                 }
@@ -56,9 +56,9 @@ public class StationMonitor implements Runnable{
             System.out.println("bye bye train");
             this.train.moveStation();
             this.train = null;
-            this.waitForFree.signal();
+            this.waitForFree.release();
         } finally {
-            stationLock.unlock();
+            stationLock.release();
         }
     }
     
@@ -92,23 +92,23 @@ public class StationMonitor implements Runnable{
         return train;
     }
     
-    public Lock getStationLock() {
+    public Semaphore getStationLock() {
         return stationLock;
     }
     
-    public Condition getWaitForFree(){
+    public Semaphore getWaitForFree(){
         return waitForFree;
     }
     
-    public Condition getTrainArrived() {
+    public Semaphore getTrainArrived() {
         return trainArrived;
     }
 
-    public Condition getAllSeated() {
+    public Semaphore getAllSeated() {
         return allSeated;
     }
     
-    public Condition getTrainInStation() {
+    public Semaphore getTrainInStation() {
         return trainInStation;
     }
     
@@ -134,14 +134,14 @@ public class StationMonitor implements Runnable{
                 
                 // locks and waits for train to arrive in station
                 // after receiving trainInStation signal, proceeds to load train
-                stationLock.lock();
-                trainInStation.await();
+                stationLock.acquire();
+                trainInStation.acquire();
                 System.out.println("train "+ train.getTrainNumber() + " arrived at station" + this.getStationNumber());
                 station_load_train();
             } catch (InterruptedException ex) {
                 System.out.println("no train yet :(");
             } finally {
-                stationLock.unlock();
+                stationLock.release();
             }
         }
     }

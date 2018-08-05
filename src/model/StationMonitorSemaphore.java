@@ -37,7 +37,6 @@ public class StationMonitorSemaphore implements Runnable{
     
     public void station_load_train() {
         stationLock.lock();
-        
         // loads train by signalling all waiting passengers that trainArrived
         // waits for an allSeated signal to know when to release train to next station
         // once signal is received, moves train to next station and sets current train to null
@@ -125,13 +124,6 @@ public class StationMonitorSemaphore implements Runnable{
         System.out.println("station " + stationNumber + " is running...");
         while (true) {
             try {
-                /*
-                if (this.train != null) {
-                System.out.println("train "+ train.getTrainNumber() + " arrived at station" + this.getStationNumber());
-                station_load_train();
-                }
-                */
-                
                 // locks and waits for train to arrive in station
                 // after receiving trainInStation signal, proceeds to load train
                 stationLock.lock();
