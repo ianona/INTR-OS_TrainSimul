@@ -22,6 +22,7 @@ public class StationMonitor implements Runnable{
     private Semaphore allSeated;
     private Semaphore trainInStation;
     private Semaphore waitForFree;
+    private Semaphore doneUsingTrain;   
     private Train train;
     private ArrayList<Passenger> waitingPassengers;
     
@@ -32,6 +33,7 @@ public class StationMonitor implements Runnable{
         this.allSeated = new Semaphore(0,true);
         this.trainInStation = new Semaphore(0,true);
         this.waitForFree = new Semaphore(0,true);
+        this.doneUsingTrain = new Semaphore(0, true);
         this.train = null;
         this.waitingPassengers = new ArrayList<>();
     }
@@ -41,7 +43,7 @@ public class StationMonitor implements Runnable{
         // waits for an allSeated signal to know when to release train to next station
         // once signal is received, moves train to next station and sets current train to null
         try{
-            stationLock.acquire();
+            //stationLock.acquire();
             if (getWaitingPassengers() > 0 && getFreeTrainSeats() > 0) {
                 System.out.println("STATION "+stationNumber +" FILLING TRAIN " + train.getTrainNumber());
                 trainArrived.release();
@@ -54,11 +56,12 @@ public class StationMonitor implements Runnable{
             }
             
             System.out.println("bye bye train");
-            this.train.moveStation();
+            doneUsingTrain.release();
             this.train = null;
+            System.out.println("STATION" + stationNumber +"freed it's train");
             this.waitForFree.release();
         } finally {
-            stationLock.release();
+            //stationLock.release();
         }
     }
     
@@ -112,6 +115,10 @@ public class StationMonitor implements Runnable{
         return trainInStation;
     }
     
+    public Semaphore getDoneUsingTrain() {
+        return doneUsingTrain;
+    }
+    
     public void setTrain(Train t){
         this.train = t;
     }
@@ -134,13 +141,17 @@ public class StationMonitor implements Runnable{
                 
                 // locks and waits for train to arrive in station
                 // after receiving trainInStation signal, proceeds to load train
-                stationLock.acquire();
+                //stationLock.acquire();
                 trainInStation.acquire();
                 System.out.println("train "+ train.getTrainNumber() + " arrived at station" + this.getStationNumber());
                 station_load_train();
             } catch (InterruptedException ex) {
                 System.out.println("no train yet :(");
             } finally {
+                System.out.println("done using train");
+                
+                
+                System.out.println("station is free. NEXT!");
                 stationLock.release();
             }
         }

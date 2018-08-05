@@ -80,7 +80,8 @@ public class Train implements Runnable{
             station.setTrain(this);
             station.getTrainInStation().release();
         } finally {
-            station.getStationLock().release();
+            //station.getStationLock().release();
+            station.getDoneUsingTrain().acquire();
         }
     }
 
@@ -89,7 +90,8 @@ public class Train implements Runnable{
         try {
             // initially moves station from -1 to 0
             // implies every train spawns at first station
-            moveStation();
+            while(true)
+                moveStation();
         } catch (InterruptedException ex) {
             Logger.getLogger(Train.class.getName()).log(Level.SEVERE, null, ex);
         }
