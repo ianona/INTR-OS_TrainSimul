@@ -21,6 +21,7 @@ public class StationMonitorSemaphore implements Runnable{
     private Semaphore trainArrived;
     private Semaphore allSeated;
     private Semaphore trainInStation;
+    private Semaphore trainReadyToBoard;
     private Semaphore doneUsingTrain;   
     private TrainSemaphore train;
     private ArrayList<PassengerSemaphore> waitingPassengers;
@@ -32,6 +33,7 @@ public class StationMonitorSemaphore implements Runnable{
         this.allSeated = new Semaphore(0,true);
         this.trainInStation = new Semaphore(0,true);
         this.doneUsingTrain = new Semaphore(0, true);
+        this.trainReadyToBoard = new Semaphore(0, true);
         this.train = null;
         this.waitingPassengers = new ArrayList<>();
     }
@@ -41,11 +43,11 @@ public class StationMonitorSemaphore implements Runnable{
         // waits for an allSeated signal to know when to release train to next station
         // once signal is received, moves train to next station and sets current train to null
         try{
-            //stationLock.acquire();
+            
             if (getWaitingPassengers() > 0 && getFreeTrainSeats() > 0) {
                 System.out.println("Station #"+stationNumber +" FILLING TRAIN #" + train.getTrainNumber());
-                trainArrived.release();
-                
+                trainReadyToBoard.release();
+                System.out.println("All aboard the train @" + stationNumber);
                 allSeated.acquire();
             }
             
@@ -56,6 +58,10 @@ public class StationMonitorSemaphore implements Runnable{
         } finally {
             //stationLock.release();
         }
+    }
+
+    public Semaphore getTrainReadyToBoard() {
+        return trainReadyToBoard;
     }
     
     public void boardPassenger(PassengerSemaphore p){

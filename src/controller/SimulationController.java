@@ -46,9 +46,9 @@ public class SimulationController {
             new Thread(new PassengerSemaphore(semaStations[0], semaStations[4])).start();
             new Thread(new PassengerSemaphore(semaStations[0], semaStations[4])).start();
             
-            new Thread(new PassengerSemaphore(semaStations[2], semaStations[7])).start();
+            //new Thread(new PassengerSemaphore(semaStations[2], semaStations[7])).start();
             
-            new Thread(new PassengerSemaphore(semaStations[5], semaStations[0])).start();
+            //new Thread(new PassengerSemaphore(semaStations[5], semaStations[0])).start();
             
             for (int x=0; x < numberOfTrains; x++){
                 new Thread(new TrainSemaphore(3, semaStations, x+1)).start();

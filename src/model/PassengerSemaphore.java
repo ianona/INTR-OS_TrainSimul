@@ -20,6 +20,7 @@ public class PassengerSemaphore implements Runnable{
     private Semaphore stationLock;
     private Semaphore trainArrived;
     private Semaphore allSeated;
+    private Semaphore trainReadyToBoard;
     
     public PassengerSemaphore(StationMonitorSemaphore start, StationMonitorSemaphore end){
         this.originStation = start;
@@ -28,6 +29,7 @@ public class PassengerSemaphore implements Runnable{
         this.stationLock = start.getStationLock();
         this.trainArrived = start.getTrainArrived();
         this.allSeated = start.getAllSeated();
+        this.trainReadyToBoard = start.getTrainReadyToBoard();
     }
 
     public StationMonitorSemaphore getDestinationStation() {
@@ -47,10 +49,10 @@ public class PassengerSemaphore implements Runnable{
             //stationLock.acquire();
             originStation.addWaiting(this);
             System.out.println("passenger at station #" + originStation.getStationNumber()+" waiting for train...");
-            trainArrived.acquire();
+            //trainArrived.acquire();
             System.out.println("passenger is signalled by train");
-            originStation.removeWaiting(this);
-        } catch (InterruptedException ex) {
+            
+        } catch (Exception ex) {
             Logger.getLogger(Passenger.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             //stationLock.release();
@@ -63,14 +65,16 @@ public class PassengerSemaphore implements Runnable{
         // signals allSeated if no more waiting or train is full
         // signal allSeated is sign for train to move on to next station
         try {
-            //stationLock.acquire();
-            System.out.println("bording train...");
+            trainReadyToBoard.acquire();
+            System.out.println("bording train..." + this);
             originStation.boardPassenger(this);
+            originStation.removeWaiting(this);
             if (originStation.getFreeTrainSeats() == 0 || originStation.getWaitingPassengers() == 0) {
+                System.out.println("Sir the train is full sir");
                 allSeated.release();
             }
         } finally {
-            //stationLock.release();
+            trainReadyToBoard.release();
         }
     }
     
