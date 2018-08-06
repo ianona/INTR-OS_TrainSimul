@@ -20,7 +20,6 @@ public class StationMonitor implements Runnable{
     private Condition trainArrived;
     private Condition allSeated;
     private Condition trainInStation;
-    private Condition waitForFree;
     private Condition doneUsingTrain;   
     private Train train;
     private ArrayList<Passenger> waitingPassengers;
@@ -31,7 +30,6 @@ public class StationMonitor implements Runnable{
         this.trainArrived = stationLock.newCondition();
         this.allSeated = stationLock.newCondition();
         this.trainInStation = stationLock.newCondition();
-        this.waitForFree = stationLock.newCondition();
         this.doneUsingTrain = stationLock.newCondition();
         this.train = null;
         this.waitingPassengers = new ArrayList<>();
@@ -59,7 +57,6 @@ public class StationMonitor implements Runnable{
             doneUsingTrain.signal();
             this.train = null;
             System.out.println("Station #" + stationNumber +" freed it's train");
-            this.waitForFree.signal();
         } finally {
             stationLock.unlock();
         }
@@ -97,10 +94,6 @@ public class StationMonitor implements Runnable{
     
     public Lock getStationLock() {
         return stationLock;
-    }
-    
-    public Condition getWaitForFree(){
-        return waitForFree;
     }
     
     public Condition getTrainArrived() {

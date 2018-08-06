@@ -32,7 +32,6 @@ public class StationMonitorSemaphore implements Runnable{
         this.trainArrived = new Semaphore(0,true);
         this.allSeated = new Semaphore(0,true);
         this.trainInStation = new Semaphore(0,true);
-        this.waitForFree = new Semaphore(0,true);
         this.doneUsingTrain = new Semaphore(0, true);
         this.train = null;
         this.waitingPassengers = new ArrayList<>();
@@ -59,7 +58,6 @@ public class StationMonitorSemaphore implements Runnable{
             doneUsingTrain.release();
             this.train = null;
             System.out.println("Station #" + stationNumber +" freed it's train");
-            this.waitForFree.release();
         } finally {
             //stationLock.release();
         }
@@ -97,10 +95,6 @@ public class StationMonitorSemaphore implements Runnable{
     
     public Semaphore getStationLock() {
         return stationLock;
-    }
-    
-    public Semaphore getWaitForFree(){
-        return waitForFree;
     }
     
     public Semaphore getTrainArrived() {

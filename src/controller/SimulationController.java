@@ -28,10 +28,10 @@ public class SimulationController {
         // initialize 8 stations and store in stations array
         
         // to decide which solution to use, semaphore or locks. true = semaphore and false = locks
-        boolean semaphore = true;
+        boolean semaphore = false;
         
         // set number of trains before hand
-        int numberOfTrains = 8; 
+        int numberOfTrains = 1; 
         
         if (semaphore){
             System.out.println("Semaphore solution");
@@ -43,7 +43,7 @@ public class SimulationController {
             }
             
             for (int x=0; x < numberOfTrains; x++){
-                new Thread(new TrainSemaphore(3, semaStations, x)).start();
+                new Thread(new TrainSemaphore(3, semaStations, x+1)).start();
             }
         }
         else{
@@ -56,7 +56,7 @@ public class SimulationController {
             }
             
             for (int x=0; x < numberOfTrains; x++){
-                new Thread(new Train(3, stations, x)).start();
+                new Thread(new Train(3, stations, x+1)).start();
             }
         }
 //        
