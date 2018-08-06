@@ -44,7 +44,7 @@ public class PassengerSemaphore implements Runnable{
         // after receiving signal, remove from waiting, unlock, proceed to board
         try {
             // locks and adds itself to its station's waiting array
-            stationLock.acquire();
+            //stationLock.acquire();
             originStation.addWaiting(this);
             System.out.println("passenger at station #" + originStation.getStationNumber()+" waiting for train...");
             trainArrived.acquire();
@@ -53,7 +53,7 @@ public class PassengerSemaphore implements Runnable{
         } catch (InterruptedException ex) {
             Logger.getLogger(Passenger.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
-            stationLock.release();
+            //stationLock.release();
             station_on_board();
         }
     }
@@ -63,14 +63,14 @@ public class PassengerSemaphore implements Runnable{
         // signals allSeated if no more waiting or train is full
         // signal allSeated is sign for train to move on to next station
         try {
-            stationLock.acquire();
+            //stationLock.acquire();
             System.out.println("bording train...");
             originStation.boardPassenger(this);
             if (originStation.getFreeTrainSeats() == 0 || originStation.getWaitingPassengers() == 0) {
-                allSeated.acquire();
+                allSeated.release();
             }
         } finally {
-            stationLock.release();
+            //stationLock.release();
         }
     }
     
@@ -83,6 +83,9 @@ public class PassengerSemaphore implements Runnable{
         try {
             // waits for train
             station_wait_for_train();
+            
+            
+            
             // after in train, passenger is practically dead
             // train is responsible for releasing passenger
             

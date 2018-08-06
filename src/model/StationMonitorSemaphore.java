@@ -21,7 +21,6 @@ public class StationMonitorSemaphore implements Runnable{
     private Semaphore trainArrived;
     private Semaphore allSeated;
     private Semaphore trainInStation;
-    private Semaphore waitForFree;
     private Semaphore doneUsingTrain;   
     private TrainSemaphore train;
     private ArrayList<PassengerSemaphore> waitingPassengers;
@@ -44,14 +43,10 @@ public class StationMonitorSemaphore implements Runnable{
         try{
             //stationLock.acquire();
             if (getWaitingPassengers() > 0 && getFreeTrainSeats() > 0) {
-                System.out.println("Station #"+stationNumber +" FILLING TRAIN " + train.getTrainNumber());
+                System.out.println("Station #"+stationNumber +" FILLING TRAIN #" + train.getTrainNumber());
                 trainArrived.release();
                 
-                try {
-                    allSeated.acquire();
-                } catch (InterruptedException ex) {
-                    System.out.println("ERROR THINGO " + ex);
-                }
+                allSeated.acquire();
             }
             
             System.out.println("bye bye train");

@@ -40,13 +40,14 @@ public class TrainSemaphore implements Runnable{
     }
     
     public void occupySeat(PassengerSemaphore p){
-        System.out.println("passenger boarded train" + trainNum);
+        System.out.println("passenger boarded train #" + trainNum);
         passengers.add(p);
         emptySeats -= 1;
+        System.out.println(passengers);
     }
     
     public void freeSeat(PassengerSemaphore p){
-        System.out.println("passenger leaving train " + trainNum);
+        System.out.println("passenger leaving train #" + trainNum);
         passengers.remove(p);
         emptySeats += 1;
     }
@@ -63,7 +64,7 @@ public class TrainSemaphore implements Runnable{
         try {
             // locks and sets parent station's current train to this
             // signals parent station that trainInStation so it can load it
-            station.getStationLock().acquire();
+            //station.getStationLock().acquire();
             // checks if new station is dropoff for passengers
             // if so, removes passenger from array
             for (int i = passengers.size() - 1; i >= 0; i--) {
