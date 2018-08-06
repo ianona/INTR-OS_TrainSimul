@@ -49,7 +49,7 @@ public class Passenger implements Runnable {
         try {
             
             originStation.addWaiting(this);
-            System.out.println("passenger at station " + originStation.getStationNumber()+" waiting for train...");
+            System.out.println("passenger at station #" + originStation.getStationNumber()+" waiting for train...");
             trainArrived.await();
             System.out.println("passenger is signalled by train");
             originStation.removeWaiting(this);

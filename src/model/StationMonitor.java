@@ -45,7 +45,7 @@ public class StationMonitor implements Runnable{
         try{
             
             if (getWaitingPassengers() > 0 && getFreeTrainSeats() > 0) {
-                System.out.println("STATION "+stationNumber +" FILLING TRAIN " + train.getTrainNumber());
+                System.out.println("Station #"+stationNumber +" FILLING TRAIN " + train.getTrainNumber());
                 trainArrived.signalAll();
                 
                 try {
@@ -58,7 +58,7 @@ public class StationMonitor implements Runnable{
             System.out.println("bye bye train");
             doneUsingTrain.signal();
             this.train = null;
-            System.out.println("STATION" + stationNumber +"freed it's train");
+            System.out.println("Station #" + stationNumber +" freed it's train");
             this.waitForFree.signal();
         } finally {
             stationLock.unlock();
@@ -129,7 +129,7 @@ public class StationMonitor implements Runnable{
 
     @Override
     public void run() {
-        System.out.println("station " + stationNumber + " is running...");
+        System.out.println("Station #" + stationNumber + " is running...");
         while (true) {
             try {
                 /*
@@ -143,13 +143,13 @@ public class StationMonitor implements Runnable{
                 // after receiving trainInStation signal, proceeds to load train
                 stationLock.lock();
                 trainInStation.await();
-                System.out.println("Train #"+ train.getTrainNumber() + " arrived at station#" + this.getStationNumber());
+                System.out.println("Train #"+ train.getTrainNumber() + " arrived at station #" + this.getStationNumber());
                 station_load_train();
             } catch (InterruptedException ex) {
                 System.out.println("no train yet :(");
             } finally {
                 System.out.println("done using train");
-                System.out.println("station is free. NEXT!");
+                System.out.println("Station #" + stationNumber + " is free. NEXT!");
                 stationLock.unlock();
             }
         }

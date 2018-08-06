@@ -45,7 +45,7 @@ public class StationMonitorSemaphore implements Runnable{
         try{
             //stationLock.acquire();
             if (getWaitingPassengers() > 0 && getFreeTrainSeats() > 0) {
-                System.out.println("STATION "+stationNumber +" FILLING TRAIN " + train.getTrainNumber());
+                System.out.println("Station #"+stationNumber +" FILLING TRAIN " + train.getTrainNumber());
                 trainArrived.release();
                 
                 try {
@@ -58,7 +58,7 @@ public class StationMonitorSemaphore implements Runnable{
             System.out.println("bye bye train");
             doneUsingTrain.release();
             this.train = null;
-            System.out.println("STATION" + stationNumber +"freed it's train");
+            System.out.println("Station #" + stationNumber +" freed it's train");
             this.waitForFree.release();
         } finally {
             //stationLock.release();
@@ -129,7 +129,7 @@ public class StationMonitorSemaphore implements Runnable{
 
     @Override
     public void run() {
-        System.out.println("station " + stationNumber + " is running...");
+        System.out.println("Station #" + stationNumber + " is running...");
         while (true) {
             try {
                 /*
@@ -143,7 +143,7 @@ public class StationMonitorSemaphore implements Runnable{
                 // after receiving trainInStation signal, proceeds to load train
                 //stationLock.acquire();
                 trainInStation.acquire();
-                System.out.println("train "+ train.getTrainNumber() + " arrived at station" + this.getStationNumber());
+                System.out.println("Train #"+ train.getTrainNumber() + " arrived at station #" + this.getStationNumber());
                 station_load_train();
             } catch (InterruptedException ex) {
                 System.out.println("no train yet :(");
@@ -151,7 +151,7 @@ public class StationMonitorSemaphore implements Runnable{
                 System.out.println("done using train");
                 
                 
-                System.out.println("station is free. NEXT!");
+                System.out.println("Station #" + stationNumber + " is free. NEXT!");
                 stationLock.release();
             }
         }

@@ -57,7 +57,7 @@ public class Train implements Runnable{
         while (allStations[curStation].getTrain() != null){
             System.out.println("Train #" + trainNum + " is waiting");
         }
-        System.out.println("Train #"+ trainNum + " moving station to station#" + (curStation+1));
+        System.out.println("Train #"+ trainNum + " moving station to station #" + (curStation+1));
         station = allStations[curStation];
         
         // locks and sets parent station's current train to this

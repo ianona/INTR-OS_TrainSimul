@@ -46,7 +46,7 @@ public class PassengerSemaphore implements Runnable{
             // locks and adds itself to its station's waiting array
             stationLock.acquire();
             originStation.addWaiting(this);
-            System.out.println("passenger at station " + originStation.getStationNumber()+" waiting for train...");
+            System.out.println("passenger at station #" + originStation.getStationNumber()+" waiting for train...");
             trainArrived.acquire();
             System.out.println("passenger is signalled by train");
             originStation.removeWaiting(this);
