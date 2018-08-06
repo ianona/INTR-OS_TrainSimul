@@ -64,7 +64,7 @@ public class TrainSemaphore implements Runnable{
         try {
             // locks and sets parent station's current train to this
             // signals parent station that trainInStation so it can load it
-            //station.getStationLock().acquire();
+            station.getStationLock().acquire();
             // checks if new station is dropoff for passengers
             // if so, removes passenger from array
             for (int i = passengers.size() - 1; i >= 0; i--) {
