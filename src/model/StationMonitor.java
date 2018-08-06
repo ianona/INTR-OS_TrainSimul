@@ -143,7 +143,7 @@ public class StationMonitor implements Runnable{
                 // after receiving trainInStation signal, proceeds to load train
                 stationLock.lock();
                 trainInStation.await();
-                System.out.println("train "+ train.getTrainNumber() + " arrived at station" + this.getStationNumber());
+                System.out.println("Train #"+ train.getTrainNumber() + " arrived at station#" + this.getStationNumber());
                 station_load_train();
             } catch (InterruptedException ex) {
                 System.out.println("no train yet :(");
