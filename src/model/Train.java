@@ -5,82 +5,140 @@
  */
 package model;
 
+import controller.SimulationController;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import view.AbsolutePositions;
+import view.Feed;
+import view.TrainGUI;
 
 /**
  *
  * @author dlsza
  */
-public class Train implements Runnable{
+public class Train implements Runnable {
+
     private int emptySeats;
     private StationMonitor station;
     private ArrayList<Passenger> passengers;
     private StationMonitor[] allStations;
     private int trainNum;
     private int curStation;
-    
-    public Train(int capacity, StationMonitor[] stations, int trainNum) {
+    private Feed feed;
+    private SimulationController controller;
+
+    private TrainGUI trainGUI;
+    private AbsolutePositions locator = new AbsolutePositions();
+
+    public Train(int capacity, StationMonitor[] stations, int trainNum, Feed feed, SimulationController sc) {
         this.emptySeats = capacity;
         this.station = null;
         this.curStation = -1;
-        
+
         this.passengers = new ArrayList<>();
         this.allStations = stations;
         this.trainNum = trainNum;
+
+        this.feed = feed;
+        this.controller = sc;
+        this.trainGUI = controller.addTrainGUI();
     }
-    
-    public int getEmptySeats(){
+
+    public int getEmptySeats() {
         return emptySeats;
     }
-    
-    public int getTrainNumber(){
+
+    public int getTrainNumber() {
         return trainNum;
     }
     
-    public void occupySeat(Passenger p){
-        System.out.println("passenger boarded train" + trainNum);
+    public void occupySeat(Passenger p) {
+        //feed.update("passenger boarded train" + trainNum);
         passengers.add(p);
         emptySeats -= 1;
     }
     
-    public void freeSeat(Passenger p){
-        System.out.println("passenger leaving train " + trainNum);
+    /*
+    public void freeSeat(Passenger p) {
+        //feed.update("passenger leaving train " + trainNum);
         passengers.remove(p);
         emptySeats += 1;
     }
-    
-    public void moveStation() throws InterruptedException{
+    */
+
+    public void moveStation() throws InterruptedException {
         // moves and sets current station to next station
         curStation = (curStation + 1) % 8;
-        while (allStations[curStation].getTrain() != null){
-            System.out.println("Train #" + trainNum + " is waiting");
+        while (allStations[curStation].getTrain() != null) {
+            feed.update("[TRAIN] Train #" + trainNum + " is waiting");
         }
-        System.out.println("Train #"+ trainNum + " moving station to " + (curStation+1));
-        station = allStations[curStation];
+        Thread.sleep(1000);
         
+        feed.update("[TRAIN] Train #" + trainNum + " moving to station " + (curStation + 1));
+        switch (curStation + 1) {
+            case 1:
+                trainGUI.animate(locator.station8_1);
+                Thread.sleep(2000);
+                trainGUI.animate(locator.station1);
+                break;
+            case 2:
+                trainGUI.animate(locator.station2);
+                break;
+            case 3:
+                trainGUI.animate(locator.station3);
+                break;
+            case 4:
+                trainGUI.animate(locator.station3_1);
+                Thread.sleep(500);
+                trainGUI.animate(locator.station4);
+                break;
+            case 5:
+                trainGUI.animate(locator.station4_1);
+                Thread.sleep(1000);
+                trainGUI.animate(locator.station5);
+                break;
+            case 6:
+                trainGUI.animate(locator.station6);
+                break;
+            case 7:
+                trainGUI.animate(locator.station7);
+                break;
+            case 8:
+                trainGUI.animate(locator.station8);
+                break;
+        }
+        trainGUI.getGui_lock().lock();
+        trainGUI.getGui_cond().await();
+        trainGUI.getGui_lock().unlock();
+
+        station = allStations[curStation];
+
+        // locks and sets parent station's current train to this
+        station.getStationLock().lock();
+
         try {
-            // locks and sets parent station's current train to this
-            // signals parent station that trainInStation so it can load it
-            station.getStationLock().acquire();
             // checks if new station is dropoff for passengers
             // if so, removes passenger from array
             for (int i = passengers.size() - 1; i >= 0; i--) {
                 // p.moveCurStation(station);
                 if (passengers.get(i).getDestinationStation().getStationNumber() == station.getStationNumber()) {
-                    System.out.println("I have arrived at my destination and leaving train...[" + 
-                            passengers.get(i).getOriginStation().getStationNumber() + " -> " + 
-                            passengers.get(i).getDestinationStation().getStationNumber() + "]");
+                    feed.update("[TRAIN] Removing passenger ["
+                            + passengers.get(i).getOriginStation().getStationNumber() + " -> "
+                            + passengers.get(i).getDestinationStation().getStationNumber() + "]");
+                    passengers.get(i).disembark();
                     passengers.remove(i);
+                    emptySeats += 1;
                 }
-
             }
-        
+
+            // signals parent station that trainInStation so it can load it
             station.setTrain(this);
-            station.getTrainInStation().release();
+            station.getTrainInStation().signal();
         } finally {
-            station.getStationLock().release();
+            station.getDoneUsingTrain().await();
+            station.getStationLock().unlock();
         }
     }
 
@@ -89,90 +147,13 @@ public class Train implements Runnable{
         try {
             // initially moves station from -1 to 0
             // implies every train spawns at first station
-            moveStation();
+
+            while (true) {
+                Thread.sleep(1000);
+                moveStation();
+            }
         } catch (InterruptedException ex) {
             Logger.getLogger(Train.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    /*
-    private int freeSeats;
-    private Station currentStation;
-    private ArrayList<Passenger> passengers;
-    private ArrayList<Station> allStations;
-    private int nextStation;
-    private final Lock trainReady = new ReentrantLock();
-    private final Condition cond1 = trainReady.newCondition();
-    private final Condition cond2 = trainReady.newCondition();
-    
-    public Train(int capacity, ArrayList<Station> stations) {
-        this.freeSeats = capacity;
-        this.currentStation = null;
-        this.passengers = new ArrayList<>();
-        this.allStations = stations;
-        this.nextStation = 0;
-    }
-            
-    public void boardPassenger(Passenger p){
-        passengers.add(p);
-        freeSeats--;
-    }
-    
-    public void dropOffPassengers(){
-        for(Passenger p: passengers){
-            // Passenger leaves if current station is their destination
-            if(p.getDestinationStation().equals(currentStation)){
-                passengers.remove(p);
-                freeSeats++;
-            }
-        }
-    }
-    
-    public Boolean isFull(){
-        if(freeSeats == 0){
-            return true;
-        } else {
-            return false;
-        }
-    }
-    
-    // Might have to change this in the future
-    public void arriveAt(Station s){
-        this.currentStation = s;
-        this.currentStation.trainArrives(this);
-    }
-    
-    // Not sure if this function is necessary
-    public void leaveStation(){
-        this.currentStation.trainDeparts();
-        this.currentStation = null;
-    }
-    
-    public Condition getCond1(){
-        return cond1;
-    }
-    
-
-    public void run() throws InterruptedException{
-        // Train is not ready to be boarded (in transit)
-        trainReady.lock();
-        cond1.await();
-        try{
-            // Waits for next station to be ready to receive it
-            allStations.get(nextStation).getCond().signal();
-            
-        } catch(Exception e) {
-            
-        } finally {
-        // Arrives to the next station
-        this.arriveAt(allStations.get(nextStation));
-            
-        // Sets the destination for the next station
-        this.nextStation = (this.nextStation+1)%8;    
-        
-        // Signals that the train is ready to be boarded
-        trainReady.unlock();
-        }
-    }
-    */
 }

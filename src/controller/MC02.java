@@ -6,6 +6,7 @@
 package controller;
 
 import view.Feed;
+import view.MenuView;
 import view.SimulationView;
 
 /**
@@ -17,9 +18,6 @@ public class MC02 {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        //SimulationView sv = new SimulationView();
-        //Feed f = new Feed();
-        SimulationController sc = new SimulationController();
-        sc.initialize();
+        MenuView mv = new MenuView();
     }
 }

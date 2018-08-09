@@ -1,4 +1,4 @@
- /*
+/*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
@@ -14,71 +14,120 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.Timer;
+import model.Train;
 
 /**
  *
  * @author ianona
  */
-public class TrainGUI extends JPanel implements ActionListener{
+public class TrainGUI extends JPanel implements ActionListener {
+
     private Timer t = new Timer(5, this);
-    private Image train;
+    private Image train, trainDown, trainLeft;
     private int X, Y, dX, dY;
-    private int velX = 2, velY=1;
-    
-    private static final Rectangle station1 = new Rectangle(0,0, 100, 100);
-    private static final Rectangle station2 = new Rectangle(310, 215, 100, 100);
-    
-    public TrainGUI(Rectangle r){
+    private int velX = 1, velY = 1;
+    private Lock gui_lock;
+    private Condition gui_cond;
+    private String mode;
+
+    private AbsolutePositions locator = new AbsolutePositions();
+
+    public TrainGUI(Rectangle r) {
+        this.gui_lock = new ReentrantLock();
+        this.gui_cond = gui_lock.newCondition();
+
         try {
             train = new ImageIcon(ImageIO.read(Thread.currentThread().getContextClassLoader().getResourceAsStream("resources/train.png"))).getImage();
-            prepareImage(train, this);  
-            //train = new JLabel(new ImageIcon(ImageIO.read(Thread.currentThread().getContextClassLoader().getResourceAsStream("resources/train.png"))));
+            prepareImage(train, this);
+            trainDown = new ImageIcon(ImageIO.read(Thread.currentThread().getContextClassLoader().getResourceAsStream("resources/trainDown.png"))).getImage();
+            prepareImage(trainDown, this);
+            trainLeft = new ImageIcon(ImageIO.read(Thread.currentThread().getContextClassLoader().getResourceAsStream("resources/trainLeft.png"))).getImage();
+            prepareImage(trainLeft, this);
         } catch (IOException e) {
             System.out.println("file not found");
         }
-       
+        mode = "right";
         X = (int) r.getX();
         Y = (int) r.getY();
         this.setDoubleBuffered(true);
 
         this.setOpaque(false);
     }
-    
-    public void paint(Graphics g){
+
+    public Lock getGui_lock() {
+        return gui_lock;
+    }
+
+    public Condition getGui_cond() {
+        return gui_cond;
+    }
+
+    public void paint(Graphics g) {
         super.paint(g);
         Graphics2D g2d = (Graphics2D) g;
-        g2d.drawImage(train, X, Y, this); //Draws the ball Image at the correct X and Y co-ordinates
-        //Toolkit.getDefaultToolkit().sync(); // necessary for linux users to draw  and animate image correctly
+        if (mode == "right") {
+            g2d.drawImage(train, X, Y, this);
+        } else if (mode == "down") {
+            g2d.drawImage(trainDown, X, Y, this);
+        } else if (mode == "left") {
+            g2d.drawImage(trainLeft, X, Y, this);
+        }
         g.dispose();
-        System.out.println(X+" "+Y);
-        //train.setBounds(0,200,100,100);
     }
-    
-    public void animate(Rectangle curStation, Rectangle destination) {
+
+    public void animate(Rectangle destination) {
         dX = (int) destination.getX();
         dY = (int) destination.getY();
+        if (destination.getBounds().equals(locator.station1)) {
+            mode = "right";
+            Y = (int) locator.station1.getY();
+        } else if (destination.getBounds().equals(locator.station4)) {
+            mode = "down";
+            X = (int) locator.station4.getX();
+        } else if (destination.getBounds().equals(locator.station5)) {
+            mode = "left";
+            Y = (int) locator.station5.getY();
+        }
         t.start();
     }
-    
+
+    public void releaselock() {
+        gui_lock.lock();
+        gui_cond.signal();
+        gui_lock.unlock();
+
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (X == dX && Y == dY)
+        if (X == dX && Y == dY) {
             t.stop();
-            
-        if (X > dX)
+            releaselock();
+        }
+
+        if (X > dX) {
             X -= velX;
-        if (X < dX)
+        }
+        if (X < dX) {
             X += velX;
-        if (Y < dY)
+        }
+        if (Y < dY) {
             Y += velY;
-        if (Y > dY)
+        }
+        if (Y > dY) {
             Y -= velY;
-        
+        }
+
         repaint();
     }
 }

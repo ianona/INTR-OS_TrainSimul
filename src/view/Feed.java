@@ -6,6 +6,8 @@
 package view;
 
 import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import static javax.swing.JFrame.EXIT_ON_CLOSE;
@@ -35,6 +37,12 @@ public class Feed extends JFrame{
         feedscroll.setBounds(0, 50, 300, 750);
         clear = new JButton("Clear");
         clear.setBounds(100, 0, 100, 50);
+        clear.addActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                clear();
+            }
+        });
         
         this.add(clear);
         this.add(feedscroll);
