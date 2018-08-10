@@ -20,6 +20,7 @@ public class SimulationView extends JFrame{
     private ControlPane cp;
     
     public SimulationView(SimulationController sc){
+        System.out.println(sc.getMode());
         if (sc.getMode() == 'l')
             this.setTitle("Locks & Monitors Simulation");
         else

@@ -62,10 +62,10 @@ public class MenuView extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 Feed f = new Feed();
                 SimulationController sc = new SimulationController(f);
+                sc.setMode('l');
                 SimulationView sv = new SimulationView(sc);
                 sc.attach(sv.getSimulation());
                 sc.attach(sv.getControl());
-                sc.setMode('l');
                 sc.initialize();
                 dispose();
             }
@@ -76,10 +76,10 @@ public class MenuView extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 Feed f = new Feed();
                 SimulationController sc = new SimulationController(f);
+                sc.setMode('s');
                 SimulationView sv = new SimulationView(sc);
                 sc.attach(sv.getSimulation());
                 sc.attach(sv.getControl());
-                sc.setMode('s');
                 sc.initialize();
                 dispose();
             }

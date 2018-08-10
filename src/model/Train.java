@@ -53,72 +53,72 @@ public class Train implements Runnable {
     public int getTrainNumber() {
         return trainNum;
     }
-    
+
     public void occupySeat(Passenger p) {
         //feed.update("passenger boarded train" + trainNum);
         passengers.add(p);
         emptySeats -= 1;
     }
-    
+
     /*
     public void freeSeat(Passenger p) {
         //feed.update("passenger leaving train " + trainNum);
         passengers.remove(p);
         emptySeats += 1;
     }
-    */
-
+     */
     public void moveStation() throws InterruptedException {
         // moves and sets current station to next station
         curStation = (curStation + 1) % 8;
         while (allStations[curStation].getTrain() != null) {
             feed.update("[TRAIN] Train #" + trainNum + " is waiting");
         }
-        Thread.sleep(1000);
-        
-        feed.update("[TRAIN] Train #" + trainNum + " moving to station " + (curStation + 1));
-        switch (curStation + 1) {
-            case 1:
-                trainGUI.animate(locator.station8_1);
-                Thread.sleep(2000);
-                trainGUI.animate(locator.station1);
-                break;
-            case 2:
-                trainGUI.animate(locator.station2);
-                break;
-            case 3:
-                trainGUI.animate(locator.station3);
-                break;
-            case 4:
-                trainGUI.animate(locator.station3_1);
-                Thread.sleep(500);
-                trainGUI.animate(locator.station4);
-                break;
-            case 5:
-                trainGUI.animate(locator.station4_1);
-                Thread.sleep(1000);
-                trainGUI.animate(locator.station5);
-                break;
-            case 6:
-                trainGUI.animate(locator.station6);
-                break;
-            case 7:
-                trainGUI.animate(locator.station7);
-                break;
-            case 8:
-                trainGUI.animate(locator.station8);
-                break;
-        }
-        trainGUI.getGui_lock().lock();
-        trainGUI.getGui_cond().await();
-        trainGUI.getGui_lock().unlock();
 
+        Thread.sleep(1000);
         station = allStations[curStation];
 
-        // locks and sets parent station's current train to this
-        station.getStationLock().lock();
-
         try {
+            // locks and sets parent station's current train to this
+            station.getStationLock().lock();
+            station.setTrain(this);
+            
+            feed.update("[TRAIN] Train #" + trainNum + " moving to station " + (curStation + 1));
+            switch (curStation + 1) {
+                case 1:
+                    trainGUI.animate(locator.station8_1);
+                    Thread.sleep(1500);
+                    trainGUI.animate(locator.station1);
+                    break;
+                case 2:
+                    trainGUI.animate(locator.station2);
+                    break;
+                case 3:
+                    trainGUI.animate(locator.station3);
+                    break;
+                case 4:
+                    trainGUI.animate(locator.station3_1);
+                    Thread.sleep(500);
+                    trainGUI.animate(locator.station4);
+                    break;
+                case 5:
+                    trainGUI.animate(locator.station4_1);
+                    Thread.sleep(1000);
+                    trainGUI.animate(locator.station5);
+                    break;
+                case 6:
+                    trainGUI.animate(locator.station6);
+                    break;
+                case 7:
+                    trainGUI.animate(locator.station7);
+                    break;
+                case 8:
+                    trainGUI.animate(locator.station8);
+                    break;
+            }
+            trainGUI.getGui_lock().lock();
+            trainGUI.getGui_cond().await();
+            trainGUI.getGui_lock().unlock();
+            
             // checks if new station is dropoff for passengers
             // if so, removes passenger from array
             for (int i = passengers.size() - 1; i >= 0; i--) {
@@ -134,7 +134,6 @@ public class Train implements Runnable {
             }
 
             // signals parent station that trainInStation so it can load it
-            station.setTrain(this);
             station.getTrainInStation().signal();
         } finally {
             station.getDoneUsingTrain().await();
@@ -149,7 +148,7 @@ public class Train implements Runnable {
             // implies every train spawns at first station
 
             while (true) {
-                Thread.sleep(1000);
+                Thread.sleep(500);
                 moveStation();
             }
         } catch (InterruptedException ex) {

@@ -91,7 +91,6 @@ public class Passenger implements Runnable {
             originStation.addWaiting(this);
             feed.update("[PASSENGER] At station " + originStation.getStationNumber() + ", waiting for train...");
             trainArrived.await();
-            //feed.update("passenger is signalled by train");
             originStation.removeWaiting(this);
         } catch (InterruptedException ex) {
             Logger.getLogger(Passenger.class.getName()).log(Level.SEVERE, null, ex);
@@ -107,7 +106,17 @@ public class Passenger implements Runnable {
         // signal allSeated is sign for train to move on to next station
         stationLock.lock();
         try {
+            if (originStation.getFreeTrainSeats() == 0){
+                stationLock.unlock();
+                station_wait_for_train();
+            }
             feed.update("[PASSENGER] Boarding train #" + originStation.getStationNumber());
+            originStation.boardPassenger(this);
+            System.out.println(originStation.getFreeTrainSeats());
+            if (originStation.getFreeTrainSeats() == 0 || originStation.getWaitingPassengers() == 0) {
+                allSeated.signal();
+                //Thread.sleep(1000);
+            }
             switch (originStation.getStationNumber()) {
                 case 1:
                     sprite.board(locator.station1_waiting);
@@ -139,13 +148,6 @@ public class Passenger implements Runnable {
             sprite.getGui_lock().unlock();
             trainNum = originStation.getTrain().getTrainNumber();
             controller.boardTrain(trainNum);
-            
-            originStation.boardPassenger(this);
-            System.out.println(originStation.getFreeTrainSeats());
-            if (originStation.getFreeTrainSeats() == 0 || originStation.getWaitingPassengers() == 0) {
-                allSeated.signal();
-                Thread.sleep(1000);
-            }
         } catch (InterruptedException ex) {
             Logger.getLogger(Train.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
@@ -189,7 +191,7 @@ public class Passenger implements Runnable {
             sprite.getGui_cond().await();
             sprite.getGui_lock().unlock();
             controller.exitTrain(trainNum);
-            Thread.sleep(1000);
+            //Thread.sleep(1000);
         } catch (InterruptedException ex) {
             Logger.getLogger(Passenger.class.getName()).log(Level.SEVERE, null, ex);
         }

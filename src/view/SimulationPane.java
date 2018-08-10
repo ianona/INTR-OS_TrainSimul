@@ -49,7 +49,7 @@ public class SimulationPane extends JLayeredPane{
     public TrainGUI addTrain(){
         TrainGUI sampleTrain = new TrainGUI(locator.station0);
         sampleTrain.setBounds(0, 0, 1115, 670);
-        this.add(sampleTrain, 1);
+        this.add(sampleTrain, 0);
         return sampleTrain;
     }
 }

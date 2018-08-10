@@ -27,22 +27,26 @@ import javax.swing.Timer;
  */
 public class PassengerGUI extends JPanel implements ActionListener{
     private Timer t = new Timer(5, this);
-    private Image passenger;
+    private Image passenger, passengerBoom;
     private int X, Y, dX, dY;
     private int velX = 1, velY=1;
     private Lock gui_lock;
     private Condition gui_cond;
     private String mode;
+    private boolean boom;
     
     private AbsolutePositions locator = new AbsolutePositions();
     
     public PassengerGUI(Rectangle r){
         this.gui_lock = new ReentrantLock();
         this.gui_cond = gui_lock.newCondition();
+        boom = false;
         
         try {
             passenger = new ImageIcon(ImageIO.read(Thread.currentThread().getContextClassLoader().getResourceAsStream("resources/passenger.png"))).getImage();
             prepareImage(passenger, this);  
+            passengerBoom = new ImageIcon(ImageIO.read(Thread.currentThread().getContextClassLoader().getResourceAsStream("resources/passengerBoom2.png"))).getImage();
+            prepareImage(passengerBoom, this);  
         } catch (IOException e) {
             System.out.println("file not found");
         }
@@ -65,7 +69,10 @@ public class PassengerGUI extends JPanel implements ActionListener{
     public void paint(Graphics g){
         super.paint(g);
         Graphics2D g2d = (Graphics2D) g;
-        g2d.drawImage(passenger, X, Y, this);
+        if (!boom)
+            g2d.drawImage(passenger, X, Y, this);
+        else
+            g2d.drawImage(passengerBoom, X, Y, this);
         g.dispose();
     }
     
@@ -140,9 +147,16 @@ public class PassengerGUI extends JPanel implements ActionListener{
     public void actionPerformed(ActionEvent e) {
         if (X == dX && Y == dY) {
             t.stop();
+            releaselock();
             if (mode=="board" || mode=="exit")
                 this.setVisible(false);
-            releaselock();
+            
+        }
+        
+        if (X == dX-20 || Y == dY+20 || Y == dY-20){
+            if (mode=="exit"){
+                boom = true;
+            }
         }
             
             
